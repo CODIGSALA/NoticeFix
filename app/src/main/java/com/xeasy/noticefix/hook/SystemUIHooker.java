@@ -721,16 +721,28 @@ public class SystemUIHooker implements IXposedHookLoadPackage {
     }
 
     // 检查 Flyme 系统是否已为该包适配状态栏通知图标
-    public static boolean isFlymeAdapted(String packageName, Context context) {
+    public static boolean isFlymeAdapted(String packageName, Icon smallIcon, Context context) {
         try {
-            // mz_stat_sys_<包名> 资源（SystemUI 状态栏白名单，icons.zip 只是桌面图标包不算适配）
+            // 1. mz_stat_sys_<包名> 资源（SystemUI 状态栏白名单）
             int resId = context.getResources().getIdentifier(
                     "mz_stat_sys_" + packageName.replace('.', '_'), "drawable", "com.android.systemui");
-            return resId != 0;
+            if (resId != 0) {
+                return true;
+            }
+            // 2. 通知自带 smallIcon：非占位图标 → 已适配（Flyme 会正常染色反色）；占位图标 → 未适配
+            if (smallIcon != null) {
+                int placeholderId = context.getResources().getIdentifier(
+                        "stat_sys_third_app_notify", "drawable", "com.android.systemui");
+                if (placeholderId != 0 && smallIcon.getResId() == placeholderId) {
+                    return false;
+                }
+                return true;
+            }
         } catch (Exception e) {
             XposedBridge.log(LOG_PREV + "isFlymeAdapted异常 === " + e.getMessage());
             return false;
         }
+        return false;
     }
 
 
@@ -777,7 +789,7 @@ public class SystemUIHooker implements IXposedHookLoadPackage {
                     // 使用库
                     if (iconFuncStatus.iconFuncId == IconFunc.LIB_FIX.funcId) {
                         // Flyme 已适配的包跳过（不重复注入，避免破坏系统原生适配）
-                        if (isFlymeAdapted(packageName, context)) {
+                        if (isFlymeAdapted(packageName, smallIcon, context)) {
                             XposedBridge.log(LOG_PREV + " Flyme已适配跳过 === " + packageName);
                             return;
                         }
