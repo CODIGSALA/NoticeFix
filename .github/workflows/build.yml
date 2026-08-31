@@ -25,6 +25,17 @@ jobs:
           cache-disabled: true
           develocity-injection-enabled: false
 
+      - name: Diagnose proxy env & gradle info
+        run: |
+          echo "=== proxy env ==="
+          env | grep -iE "proxy" || echo "no proxy env vars"
+          echo "=== java version ==="
+          java -version 2>&1
+          echo "=== gradle resolve trace ==="
+          gradle help --no-daemon --info > /tmp/gradle.log 2>&1
+          echo "gradle exit: $?"
+          grep -iE "dl.google|maven-metadata|Could not GET|repository.*http|Connection|trying repo" /tmp/gradle.log | head -30
+
       - name: Build release APK
         run: |
           set -o pipefail
