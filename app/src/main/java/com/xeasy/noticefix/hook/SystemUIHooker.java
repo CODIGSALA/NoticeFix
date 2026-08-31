@@ -722,29 +722,7 @@ public class SystemUIHooker implements IXposedHookLoadPackage {
 
     // 检查 Flyme 系统是否已为该包适配状态栏通知图标
     public static boolean isFlymeAdapted(String packageName, Icon smallIcon, Context context) {
-        // v6测试：全量注入，跳过判断
-        XposedBridge.log(LOG_PREV + " v6全量注入测试 === " + packageName);
-        return false;
-        // try {
-            // 1. mz_stat_sys_<包名> 资源（SystemUI 状态栏白名单）
-            int resId = context.getResources().getIdentifier(
-                    "mz_stat_sys_" + packageName.replace('.', '_'), "drawable", "com.android.systemui");
-            if (resId != 0) {
-                return true;
-            }
-            // 2. 通知自带 smallIcon：非占位图标 → 已适配（Flyme 会正常染色反色）；占位图标 → 未适配
-            if (smallIcon != null) {
-                int placeholderId = context.getResources().getIdentifier(
-                        "stat_sys_third_app_notify", "drawable", "com.android.systemui");
-                if (placeholderId != 0 && smallIcon.getResId() == placeholderId) {
-                    return false;
-                }
-                return true;
-            }
-        } catch (Exception e) {
-            XposedBridge.log(LOG_PREV + "isFlymeAdapted异常 === " + e.getMessage());
-            return false;
-        }
+        // v6测试：全量注入（跳过所有适配判断，验证 BITMAP 注入在 Flyme 是否可行）
         return false;
     }
 
