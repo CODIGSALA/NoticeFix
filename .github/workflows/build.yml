@@ -23,8 +23,15 @@ jobs:
         with:
           gradle-version: '7.4'
 
+      - name: Diagnose repo reachability
+        run: |
+          echo "=== dl.google.com AGP 7.3.1 marker ==="
+          curl -sI --max-time 15 "https://dl.google.com/dl/android/maven2/com/android/application/com.android.application.gradle.plugin/7.3.1/com.android.application.gradle.plugin-7.3.1.pom" | head -3
+          echo "=== services.gradle.org ==="
+          curl -sI --max-time 15 "https://services.gradle.org/distributions/gradle-7.4-bin.zip" | head -3
+
       - name: Build release APK
-        run: gradle assembleRelease --no-daemon
+        run: gradle assembleRelease --no-daemon --refresh-dependencies
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
