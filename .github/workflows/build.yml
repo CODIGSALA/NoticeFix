@@ -18,20 +18,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle 7.4
+      - name: Setup Gradle 7.4 (no cache)
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '7.4'
+          cache-disabled: true
 
-      - name: Diagnose repo reachability
+      - name: Diagnose (GET full pom)
         run: |
-          echo "=== dl.google.com AGP 7.3.1 marker ==="
-          curl -sI --max-time 15 "https://dl.google.com/dl/android/maven2/com/android/application/com.android.application.gradle.plugin/7.3.1/com.android.application.gradle.plugin-7.3.1.pom" | head -3
-          echo "=== services.gradle.org ==="
-          curl -sI --max-time 15 "https://services.gradle.org/distributions/gradle-7.4-bin.zip" | head -3
+          curl -s --max-time 15 "https://dl.google.com/dl/android/maven2/com/android/application/com.android.application.gradle.plugin/7.3.1/com.android.application.gradle.plugin-7.3.1.pom" | head -20
 
       - name: Build release APK
-        run: gradle assembleRelease --no-daemon --refresh-dependencies
+        run: gradle assembleRelease --no-daemon --info 2>&1 | grep -iE "dl.google|http|error|FAILURE|not found|Could not" | head -40
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
