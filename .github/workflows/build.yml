@@ -18,27 +18,25 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle 8.7 (no cache, no develocity)
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
-          cache-disabled: true
-          develocity-injection-enabled: false
-
-      - name: Diagnose gradle full trace
+      - name: Install Gradle manually (bypass gradle-actions injection)
         run: |
-          echo "=== gradle home ==="
-          ls -la /home/runner/.gradle/ 2>/dev/null | head -10
-          echo "=== run gradle help (full log) ==="
-          gradle help --no-daemon --info > /tmp/gradle.log 2>&1 || true
-          echo "=== gradle.log lines: $(wc -l < /tmp/gradle.log) ==="
-          grep -nE "dl\.google|GET|HEAD|Resource|404|403|500|trying|repository|resolve|plugin" /tmp/gradle.log | head -50
-          echo "=== last 25 lines ==="
-          tail -25 /tmp/gradle.log
+          echo "=== download gradle ==="
+          curl -sL --max-time 120 -o /tmp/gradle.zip "https://services.gradle.org/distributions/gradle-8.7-bin.zip"
+          ls -la /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /opt/gradle
+          /opt/gradle/gradle-8.7/bin/gradle --version | head -6
+
+      - name: Verify repo reachability
+        run: |
+          curl -s --max-time 15 "https://dl.google.com/dl/android/maven2/com/android/application/com.android.application.gradle.plugin/8.5.2/com.android.application.gradle.plugin-8.5.2.pom" | head -3
+          echo "---maven-metadata---"
+          curl -s --max-time 15 "https://dl.google.com/dl/android/maven2/com/android/application/com.android.application.gradle.plugin/maven-metadata.xml" | head -5
 
       - name: Build release APK
         run: |
           set -o pipefail
+          export PATH=/opt/gradle/gradle-8.7/bin:$PATH
+          export JAVA_HOME=$JAVA_HOME_17_X64
           gradle assembleRelease --no-daemon
 
       - name: Upload APK artifact
