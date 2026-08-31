@@ -720,44 +720,13 @@ public class SystemUIHooker implements IXposedHookLoadPackage {
         }
     }
 
-    // Flyme 已适配图标缓存：mz_stat_sys 资源 + icons.zip 条目
-    private static java.util.Set<String> flymeAdaptedCache = null;
-
     // 检查 Flyme 系统是否已为该包适配状态栏通知图标
     public static boolean isFlymeAdapted(String packageName, Context context) {
         try {
-            // 1. mz_stat_sys_<包名> 资源（SystemUI 白名单）
+            // mz_stat_sys_<包名> 资源（SystemUI 状态栏白名单，icons.zip 只是桌面图标包不算适配）
             int resId = context.getResources().getIdentifier(
                     "mz_stat_sys_" + packageName.replace('.', '_'), "drawable", "com.android.systemui");
-            if (resId != 0) {
-                return true;
-            }
-            // 2. /data/customizecenter/theme/icons 包名图标（缓存）
-            if (flymeAdaptedCache == null) {
-                java.util.Set<String> set = new java.util.HashSet<>();
-                try {
-                    File iconsZip = new File("/data/customizecenter/theme/icons");
-                    if (iconsZip.exists()) {
-                        java.util.zip.ZipFile zf = new java.util.zip.ZipFile(iconsZip);
-                        try {
-                            java.util.Enumeration<? extends java.util.zip.ZipEntry> en = zf.entries();
-                            while (en.hasMoreElements()) {
-                                String name = en.nextElement().getName();
-                                if (name.endsWith(".png")) {
-                                    set.add(name.substring(0, name.length() - 4));
-                                }
-                            }
-                        } finally {
-                            zf.close();
-                        }
-                    }
-                } catch (Exception e) {
-                    XposedBridge.log(LOG_PREV + "读取icons.zip失败 === " + e.getMessage());
-                }
-                flymeAdaptedCache = set;
-                XposedBridge.log(LOG_PREV + "icons.zip适配条目数 === " + set.size());
-            }
-            return flymeAdaptedCache.contains(packageName);
+            return resId != 0;
         } catch (Exception e) {
             XposedBridge.log(LOG_PREV + "isFlymeAdapted异常 === " + e.getMessage());
             return false;
