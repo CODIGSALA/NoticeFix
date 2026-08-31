@@ -25,16 +25,16 @@ jobs:
           cache-disabled: true
           develocity-injection-enabled: false
 
-      - name: Diagnose proxy env & gradle info
+      - name: Diagnose gradle full trace
         run: |
-          echo "=== proxy env ==="
-          env | grep -iE "proxy" || echo "no proxy env vars"
-          echo "=== java version ==="
-          java -version 2>&1
-          echo "=== gradle resolve trace ==="
-          gradle help --no-daemon --info > /tmp/gradle.log 2>&1
-          echo "gradle exit: $?"
-          grep -iE "dl.google|maven-metadata|Could not GET|repository.*http|Connection|trying repo" /tmp/gradle.log | head -30
+          echo "=== gradle home ==="
+          ls -la /home/runner/.gradle/ 2>/dev/null | head -10
+          echo "=== run gradle help (full log) ==="
+          gradle help --no-daemon --info > /tmp/gradle.log 2>&1 || true
+          echo "=== gradle.log lines: $(wc -l < /tmp/gradle.log) ==="
+          grep -nE "dl\.google|GET|HEAD|Resource|404|403|500|trying|repository|resolve|plugin" /tmp/gradle.log | head -50
+          echo "=== last 25 lines ==="
+          tail -25 /tmp/gradle.log
 
       - name: Build release APK
         run: |
