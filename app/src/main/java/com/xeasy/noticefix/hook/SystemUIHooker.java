@@ -722,7 +722,10 @@ public class SystemUIHooker implements IXposedHookLoadPackage {
 
     // 检查 Flyme 系统是否已为该包适配状态栏通知图标
     public static boolean isFlymeAdapted(String packageName, Icon smallIcon, Context context) {
-        try {
+        // v6测试：全量注入，跳过判断
+        XposedBridge.log(LOG_PREV + " v6全量注入测试 === " + packageName);
+        return false;
+        // try {
             // 1. mz_stat_sys_<包名> 资源（SystemUI 状态栏白名单）
             int resId = context.getResources().getIdentifier(
                     "mz_stat_sys_" + packageName.replace('.', '_'), "drawable", "com.android.systemui");
