@@ -795,14 +795,21 @@ public class SystemUIHooker implements IXposedHookLoadPackage {
                         }
                         IconLibBean iconLibBean = HookConstant.iconLibBeanMap.get(packageName);
                         if (iconLibBean != null) {
-                            // 重新生成图标
-                            Icon newIcon = Icon.createWithBitmap(ImageTools.base64ToBitmap(iconLibBean.iconBitmap));
+                            XposedBridge.log(LOG_PREV + " LIB_FIX命中 === " + packageName + " 注入前smallIcon=" + (smallIcon==null?"null":smallIcon.getType()+"/resId="+smallIcon.getResId()));
+                            // 重新生成图标（强制 ARGB_8888）
+                            Bitmap bmp = ImageTools.base64ToBitmap(iconLibBean.iconBitmap);
+                            if (bmp != null && bmp.getConfig() != Bitmap.Config.ARGB_8888) {
+                                bmp = bmp.copy(Bitmap.Config.ARGB_8888, false);
+                                XposedBridge.log(LOG_PREV + " bitmap已转ARGB_8888 === " + packageName);
+                            }
+                            Icon newIcon = Icon.createWithBitmap(bmp);
                             // todo 测试使用底色
                             if (null != iconLibBean.iconColor && !Objects.equals(iconLibBean.iconColor, "")) {
                                 notification.color = Color.parseColor(iconLibBean.iconColor);
                             }
                             // 反射赋值
                             ImageTools.setSmallIcon(newIcon, notification);
+                            XposedBridge.log(LOG_PREV + " 注入完成 === " + packageName + " 注入后smallIcon=" + notification.getSmallIcon().getType());
                             return;
                         }
 
