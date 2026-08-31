@@ -184,9 +184,9 @@ public class IconLibDao {
     }
 
     private static final List<String> onlineLibUrl = new ArrayList<String>(){{
-       add("https://x-easy.cn/noticefix/icon_lib");
-       add("https://x-easy.cn/noticefix/icon_lib_a");
-       add("https://x-easy.cn/noticefix/icon_lib_b");
+       add("https://cdn.jsdelivr.net/gh/fankes/AndroidNotifyIconAdapt@main/APP/NotifyIconsSupportConfig.json");
+       // 备用源（原 x-easy.cn 已失效）
+       // 备用源
     }};
 
     private static String getDataNoAsync(String url) {
